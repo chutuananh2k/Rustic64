@@ -8,6 +8,25 @@ In addition, **Rustic64** incorporates a custom allocator that uses the native N
 
 This project is primarily a personal learning journey in modern implant development. It is shared in the spirit of collaboration and growth, inviting feedback, suggestions, and improvements from the community.
 
+## **Build**
+
+To build Rustic64, use the following commands:
+
+- **Build for the GNU target**
+
+  ```bash
+  cargo make
+  ```
+
+- **Build for the MSVC target**
+
+  ```bash
+  cargo make msvc
+  ```
+
+> [!NOTE]
+> Rustic64 requires Rust nightly 1.86 and supports only x86_64 targets (MSVC or GNU).
+
 ## Disclaimer
 
 This project is intended **for educational and research purposes only**. It is designed to showcase a modern approach to implant design using Rust and should not be used for any illegal or unethical activities. The code provided here is a demonstration template, and the creators of this repository are not responsible for any misuse of this information.

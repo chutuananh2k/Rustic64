@@ -1,10 +1,10 @@
 [package]
-name = "rustic64"
-version = "0.1.0"
-edition = "2021"
+name = "Rustic64"
+version = "0.1.1"
+edition = "2024"
 
 [dependencies]
-panic-halt = "0.2"
+panic-halt = "1.0.0"
 
 [profile.dev]
 panic = "abort"

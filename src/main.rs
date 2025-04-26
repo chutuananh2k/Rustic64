@@ -39,11 +39,11 @@ _start:
 "#
 );
 
-extern "C" {
+unsafe extern "C" {
     fn _start();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn initialize() {
     unsafe {
         let mut instance = Instance::new();
@@ -66,7 +66,7 @@ pub extern "C" fn initialize() {
     }
 }
 
-unsafe fn niam() {
+fn niam() {
     if let Some(instance) = get_instance() {
         // Initialize native functions
         init_native_funcs();
@@ -79,30 +79,30 @@ unsafe fn niam() {
         let test = "Rustic64!".to_string();
 
         // Call WriteFile with a predefined message and handle (STD_OUTPUT_HANDLE = -11).
-        (instance.write_file)(
+        unsafe { (instance.write_file)(
             -11i32 as u32 as *mut c_void,
             test.as_ptr() as *const c_void,
             test.len() as u32,
             &mut bytes_written,
             null_mut(),
-        );
+        ) };
 
         // Call TerminateProcess with process handle -1 (current process).
-        (instance.ntdll.nt_terminate_process)(-1isize as *mut c_void, 0); // Exit the current process with code 0.
+        unsafe { (instance.ntdll.nt_terminate_process)(-1isize as *mut c_void, 0) }; // Exit the current process with code 0.
     }
 }
 
 /// Attempts to locate the global `Instance` by scanning process heaps and
 /// returns a mutable reference to it if found.
-unsafe fn get_instance() -> Option<&'static mut Instance> {
+fn get_instance() -> Option<&'static mut Instance> {
     let peb = find_peb(); // Locate the PEB (Process Environment Block)
-    let process_heaps = (*peb).process_heaps;
-    let number_of_heaps = (*peb).number_of_heaps as usize;
+    let process_heaps = unsafe {(*peb).process_heaps};
+    let number_of_heaps = unsafe {(*peb).number_of_heaps as usize};
 
     for i in 0..number_of_heaps {
-        let heap = *process_heaps.add(i);
+        let heap = unsafe { *process_heaps.add(i) };
         if !heap.is_null() {
-            let instance = &mut *(heap as *mut Instance);
+            let instance = unsafe { &mut *(heap as *mut Instance) };
             if instance.magic == INSTANCE_MAGIC {
                 return Some(instance); // Return the instance if the magic value matches
             }

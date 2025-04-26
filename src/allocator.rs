@@ -12,7 +12,7 @@ pub const HEAP_ZERO_MEMORY: c_ulong = 0x00000008;
 
 /// Global allocator implementation using NT Heap API.
 #[global_allocator]
-#[link_section = ".text"]
+#[unsafe(link_section = ".text")]
 pub static NT_HEAPALLOCATOR: NtHeapAlloc = NtHeapAlloc::new();
 
 /// Struct representing a custom heap allocator using the NT Heap API.
@@ -31,7 +31,7 @@ impl NtHeapAlloc {
     /// This function fetches the heap handle from the global instance.
     #[inline]
     fn handle(&self) -> *mut c_void {
-        unsafe { get_instance().unwrap().heap_handle() }
+        get_instance().unwrap().heap_handle()
     }
 
     /// Initializes the heap by calling `RtlCreateHeap` and storing the resulting handle.
@@ -48,11 +48,10 @@ impl NtHeapAlloc {
                 null_mut(),
             )
         };
-        unsafe {
-            get_instance()
-                .unwrap()
-                .set_heap_handle(raw_heap_handle as _)
-        };
+        get_instance()
+            .unwrap()
+            .set_heap_handle(raw_heap_handle as _)
+        
     }
 }
 
@@ -60,27 +59,27 @@ impl NtHeapAlloc {
 /// using the NT Heap API for memory management.
 unsafe impl GlobalAlloc for NtHeapAlloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        (get_instance().unwrap().ntdll.rtl_allocate_heap)(self.handle(), 0, layout.size())
+        unsafe { (get_instance().unwrap().ntdll.rtl_allocate_heap)(self.handle(), 0, layout.size()) }
     }
 
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        (get_instance().unwrap().ntdll.rtl_allocate_heap)(
+        unsafe { (get_instance().unwrap().ntdll.rtl_allocate_heap)(
             self.handle(),
             HEAP_ZERO_MEMORY,
             layout.size(),
-        )
+        ) }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        (get_instance().unwrap().ntdll.rtl_free_heap)(self.handle(), 0, ptr);
+        unsafe { (get_instance().unwrap().ntdll.rtl_free_heap)(self.handle(), 0, ptr) };
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        (get_instance().unwrap().ntdll.rtl_re_allocate_heap)(self.handle(), 0, ptr, new_size)
+        unsafe { (get_instance().unwrap().ntdll.rtl_re_allocate_heap)(self.handle(), 0, ptr, new_size) }
     }
 }
 
-#[no_mangle]
-unsafe fn rust_oom() -> ! {
-    asm!("ud2", options(noreturn));
+#[unsafe(no_mangle)]
+fn rust_oom() -> ! {
+   unsafe { asm!("ud2", options(noreturn)) };
 }
